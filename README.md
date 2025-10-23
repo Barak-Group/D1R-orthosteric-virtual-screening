@@ -1,1 +1,1 @@
-# D1R-orthosteric-virtual-screening
+This repository contains files related to the paper "Discovery of Novel Dopamine D1 Receptor Biased-Ligand Chemotypes By Virtual Screening" by Yang Zhou, William C. Wetsela, Alem W. Kahsai, Steven H. Olson and Lawrence S. Barak.
