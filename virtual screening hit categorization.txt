@@ -1,0 +1,49 @@
+from rdkit import Chem, DataStructs
+from rdkit.Chem import AllChem
+from rdkit.Chem.rdchem import Mol
+
+# This code requires the RDKit package to be installed.
+# The categorize compounds function uses a spreadsheet (csv) of docking hits ranked by docking score as input. 
+# The spreadsheet needs to include compound ID in the first column, docking score in the second column, and 
+# compound structures in SMILES format in the third column. The output file has an additional numerical
+# colume to indicate compound category. Comopunds within a category have Tanimoto similarity 
+# coefficient of less than the cutoff value (defaulted at 0.3) compared to the first compound in 
+# the compound group. The output file is in the SMILES format and when the extension is changed to .smi,
+# can be read by the molecular modeling platform.
+
+
+def categorize_compounds(file):
+    f = open(file, 'r')
+    name = f.name # input file name
+    data = f.read().split("\n") #split data by row.
+    smiles = []
+    ids = []
+    score=[]
+    for i in data:
+        split = i.split(",")
+        smiles.append(split[2]) # stores the SMILES as a list
+        ids.append(split[0]) # stores the compound IDs as a list
+        score.append(split[1]) # stores the docking scores as a list
+
+    cutoff = 0.3 # Tanimoto similarity coefficient cutoff value, can be adjusted
+    output_fp=[AllChem.GetMorganFingerprint(Chem.MolFromSmiles(''),2)]
+    output=[]
+    
+
+    for i in range(len(data)): # loop through the compound list
+        fp=AllChem.GetMorganFingerprint(Chem.MolFromSmiles(smiles[i]),2)
+        for n in range(len(output_fp)):
+            if DataStructs.TanimotoSimilarity(fp, output_fp[n]) > cutoff: # when the compound belongs to an existing group
+                output.append(smiles[i]+','+ids[i]+','+score[i]+','+ str(n) +"\n")
+                print (smiles[i]+','+ids[i]+','+score[i]+','+ str(n) +"\n")
+                break
+        else: # when the compound belongs to a new group
+            output_fp.append(fp)
+            output.append(smiles[i]+','+ids[i]+','+score[i]+','+str(n+1)+"\n")
+            print (smiles[i]+','+ids[i]+','+score[i]+','+str(n+1)+"\n")
+
+    fs = open('%s_updated'% name,'w') # the output file name has "updated" added to the original file name
+    fs.writelines(output) 
+    fs.close() 
+    
+categorize_compounds('Desktop/D1R allo VS hits.csv')
